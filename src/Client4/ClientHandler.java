@@ -1,9 +1,8 @@
-package Client1;
+package Client4;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -16,19 +15,12 @@ public class ClientHandler {
     String message;                //message send to the server
     String MESSAGE;                //capitalized message read from the server
     int myPort;
-    static List<Integer> chunkList = new ArrayList<Integer>(); // the list of chunk that current user has.
-
-    static List<Integer> getChunkList(){
-        return chunkList;
-    }
 
     public void run(int ServerPort,int MyPort, int PeerServerPort){
         this.myPort=MyPort;
         new getFileFromServer(ServerPort).start();
         new ServerPeer(MyPort).start();
         new getFileThread(PeerServerPort).start();
-
-
     }
 
     private class getFileFromServer extends Thread{
@@ -57,7 +49,6 @@ public class ClientHandler {
                 System.out.println(data);
                 fos.write(buffer,0,data);
                 fos.flush();
-                chunkList.add(1);
             } catch (IOException e) {
                 e.printStackTrace();
             }finally {
@@ -110,7 +101,6 @@ public class ClientHandler {
     private class getFileThread extends Thread{
         Socket socket;
         int port;
-        int nextChunk=-1;    //the next chunk that current user needs
         getFileThread(int getFromPrott){
             port=getFromPrott;
         }
@@ -130,6 +120,7 @@ public class ClientHandler {
                     } catch (IOException e) {
                         //e.printStackTrace();
                     }
+
                 } finally {
                     if (socket!=null){
                         try {

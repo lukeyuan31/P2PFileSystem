@@ -84,6 +84,7 @@ public class P2PServer{
                         byte[] bytes = new byte[102400];
                         int data;
                         data = fis.read(bytes);
+                        System.out.println(data);
                         os.write(bytes, 0, data);
                             // System.out.println(data);
                         //connection.close();

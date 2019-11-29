@@ -1,6 +1,6 @@
 package Client2;
 
-import Client1.ClientHandler;
+//import Client1.ClientHandler;
 
 public class Client {
     public static void main(String[] args){

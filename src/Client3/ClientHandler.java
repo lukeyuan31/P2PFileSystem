@@ -1,4 +1,4 @@
-package Client1;
+package Client3;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -17,10 +17,6 @@ public class ClientHandler {
     String MESSAGE;                //capitalized message read from the server
     int myPort;
     static List<Integer> chunkList = new ArrayList<Integer>(); // the list of chunk that current user has.
-
-    static List<Integer> getChunkList(){
-        return chunkList;
-    }
 
     public void run(int ServerPort,int MyPort, int PeerServerPort){
         this.myPort=MyPort;
@@ -48,16 +44,15 @@ public class ClientHandler {
                 out.flush();
                 in = new ObjectInputStream(socket.getInputStream());
 
-                File dir = new File("test.pdf.001");
+                File dir = new File("test.pdf.003");
                 String directory = dir.getAbsolutePath();
                 FileOutputStream fos = new FileOutputStream(directory);
                 InputStream is = socket.getInputStream();
                 byte[] buffer = new byte[102400];
                 int data=is.read(buffer);
-                System.out.println(data);
                 fos.write(buffer,0,data);
                 fos.flush();
-                chunkList.add(1);
+                chunkList.add(3);
             } catch (IOException e) {
                 e.printStackTrace();
             }finally {
@@ -128,7 +123,7 @@ public class ClientHandler {
                             chunkNum++;
                         }
                     } catch (IOException e) {
-                        //e.printStackTrace();
+                        e.printStackTrace();
                     }
                 } finally {
                     if (socket!=null){

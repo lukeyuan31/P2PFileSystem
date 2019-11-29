@@ -3,6 +3,7 @@ package Client2;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,12 +16,14 @@ public class ClientHandler {
     String message;                //message send to the server
     String MESSAGE;                //capitalized message read from the server
     int myPort;
+    static List<Integer> chunkList = new ArrayList<Integer>(); // the list of chunk that current user has.
+
 
     public void run(int ServerPort,int MyPort, int PeerServerPort){
         this.myPort=MyPort;
         new getFileFromServer(ServerPort).start();
-        new ServerPeer(PeerServerPort);
-        new getFileThread(PeerServerPort);
+        new ServerPeer(MyPort).start();
+        new getFileThread(PeerServerPort).start();
 
 
     }
@@ -48,8 +51,10 @@ public class ClientHandler {
                 InputStream is = socket.getInputStream();
                 byte[] buffer = new byte[102400];
                 int data=is.read(buffer);
+                System.out.println(data);
                 fos.write(buffer,0,data);
                 fos.flush();
+                chunkList.add(2);
             } catch (IOException e) {
                 e.printStackTrace();
             }finally {
@@ -80,7 +85,9 @@ public class ClientHandler {
                 try {
                     while (true){
                         Socket socket=serverSocket.accept();
-                        System.out.println("connected!");
+                        if (socket!=null) {
+                            System.out.println("connected!");
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -100,6 +107,7 @@ public class ClientHandler {
     private class getFileThread extends Thread{
         Socket socket;
         int port;
+        int nextChunk=-1;    //the next chunk that current user needs
         getFileThread(int getFromPrott){
             port=getFromPrott;
         }
@@ -111,12 +119,14 @@ public class ClientHandler {
                     //System.out.println("Trying to connect at port"+ port);
                     try {
                         socket = new Socket("localhost", port);
+                        if (socket!=null){
+                            System.out.println("Connection establised");
+                            System.out.println("This is a simulation of getting file");
+                            chunkNum++;
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    System.out.println("Connection establised");
-                    System.out.println("This is a simulation of getting file");
-                    chunkNum++;
                 } finally {
                     if (socket!=null){
                         try {
