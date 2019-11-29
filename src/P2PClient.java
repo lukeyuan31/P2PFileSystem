@@ -30,6 +30,9 @@ public class P2PClient {
         String targetName = tempName.substring(0,tempName.lastIndexOf('.'));
         File [] files= oneOfFiles.getParentFile().listFiles((File dir,String name) -> name.matches(targetName + "[.]\\d+"));
         Arrays.sort(files);
+        for (int i=0;i<files.length;i++){
+            System.out.println(files[i].getName());
+        }
         return Arrays.asList(files);
     }
 
@@ -40,7 +43,11 @@ public class P2PClient {
         List<File> files = listOfFiles(oneOfFiles);
         FileInputStream fis;
         FileOutputStream fos = new FileOutputStream(into);
+        //int bytesRead=0;
         //BufferedOutputStream mergingStream = new BufferedOutputStream(fos);
+        for (int i=0;i<files.size();i++){
+            System.out.println(files.get(i).getName());
+        }
         byte[] fileBytes;
         for (File f : files) {
            // Files.copy(f.toPath(), mergingStream);
@@ -54,7 +61,7 @@ public class P2PClient {
             //fis=null;
         }
         fos.close();
-        //fos=null;
+        fos=null;
     }
     public static void main(String args[]) throws IOException {
         P2PClient client = new P2PClient();
@@ -81,6 +88,19 @@ public class P2PClient {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
             while(true)
             {
+                //String filename=(String)in.readObject();
+                File dir = new File("test.pdf.001");
+                //System.out.println(filename);
+                String directory =dir.getAbsolutePath();
+                //FileOutputStream fos = new FileOutputStream("/Users/lukeyuan/IdeaProjects/TCPServerClient/src/Client/test2.txt");
+                FileOutputStream fos = new FileOutputStream(directory);
+                InputStream is = requestSocket.getInputStream();
+                byte[] buffer = new byte[102400];
+                int data;
+                data = is.read(buffer);
+                //System.out.println(data);
+                fos.write(buffer,0,data);
+                fos.flush();
                 System.out.print("Hello, please input a sentence: ");
                 //read a sentence from the standard input
                 message = bufferedReader.readLine();

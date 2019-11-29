@@ -70,7 +70,27 @@ public class P2PServer{
                 outputStream = new ObjectOutputStream(connection.getOutputStream());
                 outputStream.flush();
                 inputStream = new ObjectInputStream(connection.getInputStream());
+                String filename="test.pdf.00"+no;
+                //System.out.println(filename);
+
                 try {
+                    File dir=new File(filename);
+                    if (dir.exists()){
+                        String directory = dir.getAbsolutePath();
+                        FileInputStream fis=new FileInputStream(directory);
+                        OutputStream os = connection.getOutputStream();
+                        //int length=directory.length();
+                        //sendMessage(filename);
+                        byte[] bytes = new byte[102400];
+                        int data;
+                        data = fis.read(bytes);
+                        os.write(bytes, 0, data);
+                            // System.out.println(data);
+                        //connection.close();
+                        //System.out.println("get complete");
+                        os.flush();
+                        System.out.println("File sent to user");
+                    }
                     while (true) {
                         message = (String) inputStream.readObject();
                         System.out.println("Receive message: " + message + "from client" + no);
