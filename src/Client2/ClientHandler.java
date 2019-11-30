@@ -11,8 +11,7 @@ import java.util.List;
 public class ClientHandler {
     static int chunkNum=0;
     Socket requestSocket;           //socket connect to the server
-    ObjectOutputStream out;         //stream write to the socket
-    ObjectInputStream in;          //stream read from the socket
+
     String message;                //message send to the server
     String MESSAGE;                //capitalized message read from the server
     int myPort;
@@ -36,6 +35,8 @@ public class ClientHandler {
     private class getFileFromServer extends Thread{
         Socket socket;
         int port;
+        ObjectOutputStream out;         //stream write to the socket
+        ObjectInputStream in;          //stream read from the socket
 
         public getFileFromServer(int serverPort) {
             port=serverPort;
@@ -51,7 +52,7 @@ public class ClientHandler {
                 out = new ObjectOutputStream(socket.getOutputStream());
                 out.flush();
                 in = new ObjectInputStream(socket.getInputStream());
-
+                sendMessage(out,"2");
                 File dir = new File("test.pdf.002");
                 String directory = dir.getAbsolutePath();
                 FileOutputStream fos = new FileOutputStream(directory);
@@ -61,7 +62,7 @@ public class ClientHandler {
                 System.out.println(data);
                 fos.write(buffer,0,data);
                 fos.flush();
-                chunkList.add(2);
+                //chunkList.add(2);
             } catch (IOException e) {
                 e.printStackTrace();
             }finally {
@@ -80,6 +81,8 @@ public class ClientHandler {
     private class ServerPeer extends Thread{
         int port;
         ServerSocket serverSocket;
+        ObjectOutputStream out;         //stream write to the socket
+        ObjectInputStream in;          //stream read from the socket
 
         ServerPeer(int ServerPort){
             port=ServerPort;
@@ -108,13 +111,13 @@ public class ClientHandler {
                                     for (int i=0; i<chunkList.size();i++){
                                         response=response+chunkList.get(i)+" ";
                                     }
-                                    sendMessage(response);
+                                    sendMessage(out,response);
                                     break;
                                 }
                                 case "getFile":{
                                     System.out.println("Received getFile command");
                                     response="Send "+input[1]+" to next peer";
-                                    sendMessage(response);
+                                    sendMessage(out,response);
                                     break;
                                 }
                             }
@@ -133,6 +136,8 @@ public class ClientHandler {
         Socket socket;
         int port;
         int nextChunk=-1;    //the next chunk that current user needs
+        ObjectOutputStream out;         //stream write to the socket
+        ObjectInputStream in;          //stream read from the socket
 
         getFileThread(int getFromPrott){
             port=getFromPrott;
@@ -154,7 +159,7 @@ public class ClientHandler {
                             //sendMessage("msg Test");
                             if (nextChunk<0){
                                 inputMessage="getList "+port;
-                                sendMessage(inputMessage);
+                                sendMessage(out,inputMessage);
                                 String response = (String)in.readObject();  //response contains the chunk list of the previous user
                                 System.out.println(response);
                                 String[] splittedResponse= response.split(" ");
@@ -178,7 +183,7 @@ public class ClientHandler {
                             }
                             else if (nextChunk>0){
                                 inputMessage="getFile "+nextChunk;
-                                sendMessage(inputMessage);
+                                sendMessage(out,inputMessage);
                                 String response = (String)in.readObject();
                                 System.out.println(response);
                                 chunkList.add(nextChunk);
@@ -189,6 +194,10 @@ public class ClientHandler {
                             //TODO: changing the nextChunk will cause EOFException because no inputMessage. Deal with it first
                             System.out.println("This is a simulation of getting file");
                             //chunkNum++;
+                        }
+                        else {
+                            sleep(1000);
+                            System.out.println("No peer to connect, sleep for one sec");
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -315,7 +324,7 @@ public class ClientHandler {
         }
     }*/
     //send a message to the output stream
-    void sendMessage(String msg)
+    void sendMessage(ObjectOutputStream out,String msg)
     {
         try{
             //stream write the message
