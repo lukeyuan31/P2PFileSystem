@@ -24,6 +24,9 @@ public class ClientHandler {
 
     public void run(int ServerPort,int MyPort, int PeerServerPort){
         this.myPort=MyPort;
+        chunkList.add(1);
+        //chunkList.add(3);
+        chunkNum=1;
         new getFileFromServer(ServerPort).start();
         new ServerPeer(MyPort).start();
         new getFileThread(PeerServerPort).start();
@@ -77,6 +80,7 @@ public class ClientHandler {
         int port;
         ServerSocket serverSocket;
 
+
         ServerPeer(int ServerPort){
             port=ServerPort;
         }
@@ -89,22 +93,45 @@ public class ClientHandler {
                     while (true){
                         Socket socket=serverSocket.accept();
                         if (socket!=null) {
+                            out = new ObjectOutputStream(socket.getOutputStream());
+                            out.flush();
+                            in = new ObjectInputStream(socket.getInputStream());
                             System.out.println("connected!");
+                            String receive=(String)in.readObject();
+                            System.out.println(receive);
+                            //split the message sent from user to execute the command
+                            String[] input=receive.split(" ");
+                            String response="";
+                            switch (input[0]){
+                                case "getList":{
+                                    System.out.println("Received getList command");
+                                    List<Integer> chunkList = getChunkList();
+                                    for (int i =0;i<chunkList.size();i++){
+                                        response=response+chunkList.get(i)+" ";
+                                    }
+                                    sendMessage(response);
+                                    //System.out.println("Send"+response);
+                                    break;
+                                }
+                                case "getFile":{
+                                    System.out.println("Received getFile command");
+                                    response="Send "+input[1]+" to next peer";
+                                    sendMessage(response);
+                                    break;
+
+                                }
+                            }
+
                         }
                     }
-                } catch (IOException e) {
+                } catch (IOException e) { e.printStackTrace(); } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }finally {
-                try {
-                    serverSocket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            } catch (IOException e) { e.printStackTrace(); }finally {
+                try { serverSocket.close(); } catch (IOException e) { e.printStackTrace(); }
             }
         }
+
     }
 
     private class getFileThread extends Thread{
@@ -117,17 +144,57 @@ public class ClientHandler {
 
         public void run(){
             System.out.println("Start to get file from"+ port);
-            while (chunkNum<5){
+            while (chunkNum<3){
                 try {
                     //System.out.println("Trying to connect at port"+ port);
                     try {
                         socket = new Socket("localhost", port);
                         if (socket!=null){
+                            out = new ObjectOutputStream(socket.getOutputStream());
+                            out.flush();
+                            in= new ObjectInputStream(socket.getInputStream());
                             System.out.println("Connection establised");
+                            String inputMessage;
+
+                            if(nextChunk<0){
+                                inputMessage="getList "+port;
+                                sendMessage(inputMessage);
+                                String response = (String)in.readObject();
+                                System.out.println(response);
+                                String[] splittedResponse = response.split(" ");
+                                if (splittedResponse.length>0){
+                                    List<Integer> getChunkList = new ArrayList<Integer>();
+                                    List<Integer> myList = getChunkList();
+                                    for (int i=0;i<splittedResponse.length;i++){
+                                        if (!myList.contains(Integer.parseInt(splittedResponse[i]))){
+                                            getChunkList.add(Integer.parseInt(splittedResponse[i]));
+                                        }
+                                    }
+                                    if (getChunkList.size()>0) {
+                                        nextChunk = getChunkList.get(0);
+                                        System.out.println("Getting chunk num " + nextChunk + "from previous peer");
+                                    }
+                                    else {
+                                        sleep(1000);
+                                    }
+                                }
+
+
+                            }
+                            else if (nextChunk>0){
+                                inputMessage="getFile "+nextChunk;
+                                sendMessage(inputMessage);
+                                String response = (String)in.readObject();
+                                System.out.println(response);
+                                chunkList.add(nextChunk);
+                                nextChunk=-1;
+                                chunkNum++;
+                                System.out.println(chunkNum);
+                            }
                             System.out.println("This is a simulation of getting file");
-                            chunkNum++;
+                           // chunkNum++;
                         }
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         //e.printStackTrace();
                     }
                 } finally {
