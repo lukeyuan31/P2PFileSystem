@@ -1,4 +1,4 @@
-package Client1;
+package Client5;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -23,7 +23,7 @@ public class ClientHandler {
 
     public void run(int ServerPort,int MyPort, int PeerServerPort){
         this.myPort=MyPort;
-        chunkList.add(1);
+        chunkList.add(5);
         //chunkList.add(3);
         chunkNum=1;
         new getFileFromServer(ServerPort).start();
@@ -52,14 +52,12 @@ public class ClientHandler {
                 out = new ObjectOutputStream(socket.getOutputStream());
                 //out.flush();
                 in = new ObjectInputStream(socket.getInputStream());
-                sendMessage(out,"1");
-                File dir = new File("test.pdf.001");
-                InputStream is = socket.getInputStream();
+                sendMessage(out,"5");
+                File dir = new File("test.pdf.005");
                 String directory = dir.getAbsolutePath();
                 FileOutputStream fos = new FileOutputStream(directory);
                 BufferedOutputStream bos = new BufferedOutputStream(fos);
-                bos.flush();
-
+                InputStream is = socket.getInputStream();
                 /*
                 byte[] buffer = new byte[102400];
                 int data=is.read(buffer);
@@ -68,13 +66,11 @@ public class ClientHandler {
                 fos.flush();
                 */
                 int bytes=0;
-                int b;
-                while((b=is.read())!=-1){
-                    bos.write(b);
+                int read;
+                while((read=is.read())!=-1){
+                    bos.write(read);
                     bytes++;
                 }
-                System.out.println("print test");
-                System.out.println(bytes);
                 bos.flush();
                 bos.close();
                 fos.close();
@@ -237,6 +233,8 @@ public class ClientHandler {
                                 byte[] buffer = new byte[102400];
                                 int data = is.read(buffer);
                                 System.out.println(data);
+                                fos.write(buffer,0,data);
+                                fos.flush();
                                 */
                                 int bytes=0;
                                 int read;
@@ -247,8 +245,6 @@ public class ClientHandler {
                                 bos.flush();
                                 bos.close();
                                 is.close();
-                                //fos.write(buffer,0,data);
-                                //fos.flush();
                                 fos.close();
                                 chunkList.add(nextChunk);
                                 nextChunk=-1;

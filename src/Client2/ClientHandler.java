@@ -50,18 +50,31 @@ public class ClientHandler {
                 socket = new Socket("localhost",8000);
                 System.out.println("Connected to localhost in port 8000");
                 out = new ObjectOutputStream(socket.getOutputStream());
-                out.flush();
+                //out.flush();
                 in = new ObjectInputStream(socket.getInputStream());
                 sendMessage(out,"2");
                 File dir = new File("test.pdf.002");
                 String directory = dir.getAbsolutePath();
                 FileOutputStream fos = new FileOutputStream(directory);
+                BufferedOutputStream bos = new BufferedOutputStream(fos);
                 InputStream is = socket.getInputStream();
+                /*
                 byte[] buffer = new byte[102400];
                 int data=is.read(buffer);
                 System.out.println(data);
                 fos.write(buffer,0,data);
                 fos.flush();
+                */
+                int bytes=0;
+                int read;
+                while((read=is.read())!=-1){
+                    bos.write(read);
+                    bytes++;
+                }
+                bos.flush();
+                bos.close();
+                fos.close();
+                is.close();
                 //chunkList.add(2);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -118,6 +131,24 @@ public class ClientHandler {
                                     System.out.println("Received getFile command");
                                     response="Send "+input[1]+" to next peer";
                                     sendMessage(out,response);
+                                    String filename="test.pdf.00"+input[1];
+                                    File dir=new File(filename);
+                                    try {
+                                        if (dir.exists()){
+                                            String directory = dir.getAbsolutePath();
+                                            FileInputStream fis = new FileInputStream(directory);
+                                            OutputStream os = socket.getOutputStream();
+                                            byte[] bytes = new byte[(int)dir.length()];
+                                            int data;
+                                            data=fis.read(bytes);
+                                            os.write(bytes,0,data);
+                                            os.flush();
+                                            os.close();
+
+                                        }
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
                                     break;
                                 }
                             }
@@ -145,7 +176,7 @@ public class ClientHandler {
 
         public void run(){
             System.out.println("Start to get file from"+ port);
-            while (chunkNum<3){
+            while (chunkNum<5){
                 try {
                     //System.out.println("Trying to connect at port"+ port);
                     try {
@@ -186,6 +217,29 @@ public class ClientHandler {
                                 sendMessage(out,inputMessage);
                                 String response = (String)in.readObject();
                                 System.out.println(response);
+                                String filename="test.pdf.00"+nextChunk;
+                                File dir = new File(filename);
+                                String directory = dir.getAbsolutePath();
+                                FileOutputStream fos = new FileOutputStream(directory);
+                                BufferedOutputStream bos=new BufferedOutputStream(fos);
+                                InputStream is = socket.getInputStream();
+                                /*
+                                byte[] buffer = new byte[102400];
+                                int data = is.read(buffer);
+                                System.out.println(data);
+                                fos.write(buffer,0,data);
+                                fos.flush();
+                                */
+                                int bytes=0;
+                                int read;
+                                while((read = is.read()) !=-1){
+                                    bos.write(read);
+                                    bytes++;
+                                }
+                                bos.flush();
+                                bos.close();
+                                is.close();
+                                fos.close();
                                 chunkList.add(nextChunk);
                                 nextChunk=-1;
                                 chunkNum++;
@@ -249,7 +303,7 @@ public class ClientHandler {
             fos.write(fileBytes);
             fos.flush();
             //fileBytes=null;
-            fis.close();
+            //fis.close();
             //fis=null;
         }
         fos.close();

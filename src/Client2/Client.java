@@ -5,6 +5,6 @@ package Client2;
 public class Client {
     public static void main(String[] args){
         ClientHandler clientHandler=new ClientHandler();
-            clientHandler.run(8000,5002,5001);
+            clientHandler.run(8000,6002,6001);
     }
 }

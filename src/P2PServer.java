@@ -65,44 +65,46 @@ public class P2PServer{
 
 
 
-            public void run(){
+        public void run(){
             try{
                 outputStream = new ObjectOutputStream(connection.getOutputStream());
-                outputStream.flush();
+                //outputStream.flush();
                 inputStream = new ObjectInputStream(connection.getInputStream());
-                String filename="test.pdf.00"+no;
+                String clientNum=(String)inputStream.readObject();
+                String filename="test.pdf.00"+clientNum;
                 //System.out.println(filename);
 
-                try {
-                    File dir=new File(filename);
-                    if (dir.exists()){
-                        String directory = dir.getAbsolutePath();
-                        FileInputStream fis=new FileInputStream(directory);
-                        OutputStream os = connection.getOutputStream();
-                        //int length=directory.length();
-                        //sendMessage(filename);
-                        byte[] bytes = new byte[102400];
-                        int data;
-                        data = fis.read(bytes);
-                        System.out.println(data);
-                        os.write(bytes, 0, data);
-                            // System.out.println(data);
-                        //connection.close();
-                        //System.out.println("get complete");
-                        os.flush();
-                        System.out.println("File sent to user");
-                    }
-                    while (true) {
-                        message = (String) inputStream.readObject();
-                        System.out.println("Receive message: " + message + "from client" + no);
-                        MESSAGE = message.toUpperCase();
-                        sendMessage(MESSAGE);
 
-                    }
-                }catch (ClassNotFoundException classnot){
-                    System.err.println("Data received in unknown format");
+                File dir=new File(filename);
+                if (dir.exists()){
+                    String directory = dir.getAbsolutePath();
+                    FileInputStream fis=new FileInputStream(directory);
+                    BufferedInputStream bis = new BufferedInputStream(fis);
+                    OutputStream os = connection.getOutputStream();
+                    //int length=directory.length();
+                    //sendMessage(filename);
+                    byte[] bytes = new byte[(int)dir.length()];
+                    bis.read(bytes,0,bytes.length);
+                    //int data;
+                    //data = fis.read(bytes);
+                    System.out.println(bytes.length);
+                    os.write(bytes, 0, bytes.length);
+                    // System.out.println(data);
+                    //connection.close();
+                    //System.out.println("get complete");
+                    os.flush();
+                    System.out.println("File sent to user");
+                    connection.close();
                 }
-            } catch (IOException e) {
+                while (true) {
+                    message = (String) inputStream.readObject();
+                    System.out.println("Receive message: " + message + "from client" + no);
+                    MESSAGE = message.toUpperCase();
+                    sendMessage(MESSAGE);
+
+                }
+
+            } catch (Exception e) {
                 System.out.println("Disconnect with Client" + no);
             }
             finally {
